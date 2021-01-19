@@ -79,11 +79,10 @@ def main():
 				x += PLATFORM_WIDTH
 			y += PLATFORM_HEIGHT
 			x = 0
-			
 		hero.update(left, right, up, platforms)
 		entities.draw(screen)
-		pygame.display.flip()
 		pygame.display.update()
+		pygame.display.flip()
 
 
 if __name__ == "__main__":
