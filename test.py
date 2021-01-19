@@ -17,6 +17,10 @@ font_score = \
     pygame.font.SysFont('sitkasmallsitkatextboldsitkasubheadingboldsitkaheadingboldsitkadisplayboldsitkabannerbold', 30)
 text_color = (255, 255, 255)
 
+ring_sound = pygame.mixer.Sound('ring_sound_2.mp3')
+
+enemy_sound = pygame.mixer.Sound('enemy.mp3')
+
 tile_size = 50
 game_over = 0
 main_menu = True
@@ -108,8 +112,9 @@ class Player(pygame.sprite.Sprite):
                     self.vel_y = 0
                     self.on_the_ground = True
             
-            if pygame.sprite.spritecollide(self, spike_group, False):
-                game_over = -1
+            # if pygame.sprite.spritecollide(self, spike_group, False):
+            #     game_over = -1
+
         
         # update player coordinates
         self.rect.x += dx
@@ -167,12 +172,8 @@ class World(pygame.sprite.Sprite):
                     self.tile_list.append(tile)
                 
                 if tile == 2:
-                    img = pygame.transform.scale(wall_half_img, (tile_size, tile_size))
-                    img_rect = img.get_rect()
-                    img_rect.x = col_count * tile_size
-                    img_rect.y = row_count * tile_size
-                    tile = (img, img_rect)
-                    self.tile_list.append(tile)
+                    spike2 = Enemy2(col_count * tile_size, row_count * tile_size + 5)
+                    spike_group.add(spike2)
                 
                 if tile == 3:
                     img = pygame.transform.scale(ring_active_img, (tile_size, tile_size + 100))
@@ -181,15 +182,7 @@ class World(pygame.sprite.Sprite):
                     img_rect.y = row_count * tile_size
                     tile = (img, img_rect)
                     self.tile_list.append(tile)
-                #
-                # if tile == 4:
-                #     img = spike_img
-                #     # img = pygame.transform.scale(spike_img, (tile_size, tile_size))
-                #     img_rect = img.get_rect()
-                #     img_rect.x = col_count * tile_size
-                #     img_rect.y = row_count * tile_size
-                #     tile = (img, img_rect)
-                #     self.tile_list.append(tile)
+
                 if tile == 5:
                     spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
                     spike_group.add(spike)
@@ -215,6 +208,25 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        
+class Enemy2(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        spike2_img = pygame.image.load('assets/thatweirdthing.png')
+        self.image = pygame.transform.scale(spike2_img, (75, 75))
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.move_direction = 1
+        self.move_counter = 0
+
+    def update(self):
+        self.rect.y += self.move_direction
+        self.move_counter += 1
+        if abs(self.move_counter) > 50:
+            self.move_direction *= -1
+            self.move_counter *= -1
+
 
 
 class Ring(pygame.sprite.Sprite):
@@ -225,6 +237,7 @@ class Ring(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         
+
 class RingIcon(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -259,12 +272,12 @@ level = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1],
-    [1, 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 6, 0, 0, 2, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [1, 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 6, 0, 0, 0, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
@@ -307,9 +320,13 @@ while running:
             
         # check if a ring has been collected
         if pygame.sprite.spritecollide(player, ring_group, True):
+            ring_sound.play()
             score += 1
         draw_text(f'x: {score}/{world.rings_amount}', font_score, text_color, 45, 15)
         
+        if pygame.sprite.spritecollide(player, spike_group, True):
+            enemy_sound.play()
+            game_over = -1
 
         spike_group.draw(screen)
         ring_group.draw(screen)
@@ -317,6 +334,7 @@ while running:
         game_over = player.update(game_over)
         
         if game_over == -1:
+            spike_group = pygame.sprite.Group()
             screen.fill(sky_color)
             if restart_button.draw():
                 player.reset(100, screen_height - 130)
@@ -326,6 +344,12 @@ while running:
                 for row in level:
                     col_count = 0
                     for tile in row:
+                        if tile == 2:
+                            spike2 = Enemy2(col_count * tile_size, row_count * tile_size + 5)
+                            spike_group.add(spike2)
+                        if tile == 5:
+                            spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
+                            spike_group.add(spike)
                         if tile == 6:
                             ring = Ring(col_count * tile_size, row_count * tile_size + 10)
                             ring_group.add(ring)
