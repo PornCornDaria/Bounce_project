@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 
+
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -12,6 +13,10 @@ screen_height = 700
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Bounce 2.0')
 
+font_score = pygame.font.SysFont('sitkasmallsitkatextboldsitkasubheadingboldsitkaheadingboldsitkadisplayboldsitkabannerbold', 30)
+print(pygame.font.get_fonts())
+text_color = (255, 255, 255)
+
 tile_size = 50
 game_over = 0
 main_menu = True
@@ -22,6 +27,12 @@ start_img = pygame.image.load('assets/start_btn.png')
 exit_img = pygame.image.load('assets/exit_btn.png')
 start_screen = pygame.image.load('assets/start_screen.png')
 
+score = 0
+
+def draw_text(text, font, text_color, x, y):
+    img = font.render(text, True, text_color)
+    screen.blit(img, (x, y))
+    
 
 class Button:
     def __init__(self, x, y, image):
@@ -130,11 +141,14 @@ class Player(pygame.sprite.Sprite):
         self.on_the_ground = True
 
 
+all_rings = 0
+
+
 class World(pygame.sprite.Sprite):
-    def __init__(self, data, *groups):
+    def __init__(self, data, rings_amount, *groups):
         super().__init__(*groups)
         self.tile_list = []
-        
+        self.rings_amount = rings_amount
         wall_img = pygame.image.load('assets/wall.png')
         wall_half_img = pygame.image.load('assets/wall_half.png')
         ring_active_img = pygame.image.load('assets/ring_active.png')
@@ -179,8 +193,13 @@ class World(pygame.sprite.Sprite):
                 if tile == 5:
                     spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
                     spike_group.add(spike)
-                    entities.add(spike)
-                    
+                
+                if tile == 6:
+                    self.rings_amount += 1
+                    ring = Ring(col_count * tile_size, row_count * tile_size + 10)
+                    ring_group.add(ring)
+            
+                
                 col_count += 1
             row_count += 1
     
@@ -196,6 +215,15 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+
+
+class Ring(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        img = pygame.image.load('assets/ring_active.png')
+        self.image = pygame.transform.scale(img, (tile_size, tile_size + 30))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
 
 
 class Camera:
@@ -221,25 +249,23 @@ level = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 6, 0, 6, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1],
+    [1, 0, 1, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 6, 0, 0, 2, 1, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
 player = Player(50, screen_height - 130)
 
 spike_group = pygame.sprite.Group()
+ring_group = pygame.sprite.Group()
 
-entities = pygame.sprite.Group()
-
-entities.add(player)
-
-world = World(level)
+world = World(level, all_rings)
 
 camera = Camera()
 
@@ -263,18 +289,18 @@ while running:
     else:
         screen.fill(sky_color)
         world.draw()
-        
-        # spike_group.draw(screen)
-        entities.draw(screen)
-        
-        # # изменяем ракурс камеры
-        camera.update(player)
-        # # обновляем положение всех спрайтов
-        for sprite in entities:
-             camera.apply(sprite)
-        
+    
         if game_over == 0:
             spike_group.update()
+            
+        # check if a ring has been collected
+        if pygame.sprite.spritecollide(player, ring_group, True):
+            score += 1
+        draw_text(f'rings score: {score}/{world.rings_amount}', font_score, text_color, 45, 10)
+        
+
+        spike_group.draw(screen)
+        ring_group.draw(screen)
         
         game_over = player.update(game_over)
         
@@ -283,11 +309,21 @@ while running:
             if restart_button.draw():
                 player.reset(100, screen_height - 130)
                 game_over = 0
+                score = 0
+                row_count = 0
+                for row in level:
+                    col_count = 0
+                    for tile in row:
+                        if tile == 6:
+                            ring = Ring(col_count * tile_size, row_count * tile_size + 10)
+                            ring_group.add(ring)
+        
+                        col_count += 1
+                    row_count += 1
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
     
     pygame.display.update()
 
