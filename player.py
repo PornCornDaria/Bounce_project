@@ -4,7 +4,7 @@
 from pygame import *
 import pygame
 
-MOVE_SPEED = 7
+MOVE_SPEED = 10
 WIDTH = 45
 HEIGHT = 35
 COLOR = "#888888"

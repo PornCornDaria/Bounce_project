@@ -52,8 +52,9 @@ class Button:
         return action
 
 
-class Player:
-    def __init__(self, x, y):
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y, *groups):
+        super().__init__(*groups)
         self.reset(x, y)
         self.count = 1
     
@@ -129,8 +130,9 @@ class Player:
         self.on_the_ground = True
 
 
-class World:
-    def __init__(self, data):
+class World(pygame.sprite.Sprite):
+    def __init__(self, data, *groups):
+        super().__init__(*groups)
         self.tile_list = []
         
         wall_img = pygame.image.load('assets/wall.png')
@@ -177,6 +179,7 @@ class World:
                 if tile == 5:
                     spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
                     spike_group.add(spike)
+                    entities.add(spike)
                     
                 col_count += 1
             row_count += 1
@@ -216,11 +219,11 @@ level = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -231,6 +234,10 @@ level = [
 player = Player(50, screen_height - 130)
 
 spike_group = pygame.sprite.Group()
+
+entities = pygame.sprite.Group()
+
+entities.add(player)
 
 world = World(level)
 
@@ -257,10 +264,14 @@ while running:
         screen.fill(sky_color)
         world.draw()
         
-        spike_group.draw(screen)
-        # camera.update(player)
-        # for i in spike_group:
-        # 	camera.apply(i)
+        # spike_group.draw(screen)
+        entities.draw(screen)
+        
+        # # изменяем ракурс камеры
+        camera.update(player)
+        # # обновляем положение всех спрайтов
+        for sprite in entities:
+             camera.apply(sprite)
         
         if game_over == 0:
             spike_group.update()
@@ -276,6 +287,7 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
     
     pygame.display.update()
 
