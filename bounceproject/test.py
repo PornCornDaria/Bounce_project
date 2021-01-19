@@ -13,8 +13,8 @@ screen_height = 700
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Bounce 2.0')
 
-font_score = pygame.font.SysFont('sitkasmallsitkatextboldsitkasubheadingboldsitkaheadingboldsitkadisplayboldsitkabannerbold', 30)
-print(pygame.font.get_fonts())
+font_score = \
+    pygame.font.SysFont('sitkasmallsitkatextboldsitkasubheadingboldsitkaheadingboldsitkadisplayboldsitkabannerbold', 30)
 text_color = (255, 255, 255)
 
 tile_size = 50
@@ -224,6 +224,14 @@ class Ring(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(img, (tile_size, tile_size + 30))
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
+        
+class RingIcon(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        img = pygame.image.load('assets/ring_active.png')
+        self.image = pygame.transform.scale(img, (tile_size // 2, (tile_size + 30) // 2))
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
 
 
 class Camera:
@@ -265,6 +273,10 @@ player = Player(50, screen_height - 130)
 spike_group = pygame.sprite.Group()
 ring_group = pygame.sprite.Group()
 
+# иконка кольца
+ring_icon = RingIcon(tile_size // 2, tile_size // 2)
+ring_group.add(ring_icon)
+
 world = World(level, all_rings)
 
 camera = Camera()
@@ -296,7 +308,7 @@ while running:
         # check if a ring has been collected
         if pygame.sprite.spritecollide(player, ring_group, True):
             score += 1
-        draw_text(f'rings score: {score}/{world.rings_amount}', font_score, text_color, 45, 10)
+        draw_text(f'x: {score}/{world.rings_amount}', font_score, text_color, 45, 15)
         
 
         spike_group.draw(screen)
