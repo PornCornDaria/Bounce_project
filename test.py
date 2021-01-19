@@ -33,6 +33,7 @@ start_screen = pygame.image.load('assets/start_screen.png')
 
 score = 0
 
+
 def draw_text(text, font, text_color, x, y):
     img = font.render(text, True, text_color)
     screen.blit(img, (x, y))
