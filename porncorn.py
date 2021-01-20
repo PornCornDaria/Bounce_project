@@ -1,56 +1,60 @@
 import pygame
-from pygame.locals import *
-from os import path, listdir
+from os import listdir
 
+# инициализируем pygame
 pygame.init()
 
 clock = pygame.time.Clock()
 fps = 60
 
-screen_width = 1000
-screen_height = 500
+# параметры экрана
+screen_width = 1750
+screen_height = 700
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Bounce 2.0')
 
+# шрифт
 font_score = \
     pygame.font.SysFont('sitkasmallsitkatextboldsitkasubheadingboldsitkaheadingboldsitkadisplayboldsitkabannerbold', 30)
 text_color = (255, 255, 255)
 
+# звуки
 ring_sound = pygame.mixer.Sound('sounds/ring_sound_2.mp3')
-
 enemy_sound = pygame.mixer.Sound('sounds/enemy.mp3')
 
+# параметры игры
 tile_size = 50
 game_over = 0
 main_menu = True
 level_num = 1
 max_levels = len(listdir('levels'))
+score = 0
 
+# цвет
 sky_color = (80, 217, 254)
+
+# текстуры
 restart_img = pygame.image.load('assets/restart_btn.png')
 start_img = pygame.image.load('assets/start_btn.png')
 exit_img = pygame.image.load('assets/exit_btn.png')
 start_screen = pygame.image.load('assets/start_screen.png')
 
-score = 0
 
-
+# функция сброса уровня
 def reset_level(level_num):
     player.reset(100, screen_height - 130)
     spike_group.empty()
     ring_group.empty()
     door_group.empty()
-
-    # load in level data and create world
-    if path.exists(f'levels/lvl{level_num}.txt'):
-        f = open(f'levels/lvl{level_num}.txt', 'r')
-        data = f.read()
-        f.close()
-        data = data.split('\n')
-        level = []
-        for row in data:
-            level.append(list(row))
+    # считываем файл с уровнем
+    f = open(f'levels/lvl{level_num}.txt', 'r')
+    data = f.read()
+    f.close()
+    data = data.split('\n')
+    level = []
+    for row in data:
+        level.append(list(row))
     world = World(level, all_rings)
 
     return world
@@ -138,8 +142,8 @@ class Player(pygame.sprite.Sprite):
             # if pygame.sprite.spritecollide(self, spike_group, False):
             #     game_over = -1
 
-        if pygame.sprite.spritecollide(self, door_group, False):
-            game_over = 1
+        # if pygame.sprite.spritecollide(self, door_group, False):
+        #     game_over = 1
 
         # update player coordinates
         self.rect.x += dx
@@ -201,23 +205,15 @@ class World(pygame.sprite.Sprite):
                     spike_group.add(spike2)
 
                 if tile == '3':
-                    img = pygame.transform.scale(ring_active_img, (tile_size, tile_size + 100))
-                    img_rect = img.get_rect()
-                    img_rect.x = col_count * tile_size
-                    img_rect.y = row_count * tile_size
-                    tile = (img, img_rect)
-                    self.tile_list.append(tile)
-
-                if tile == '4':
                     spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
                     spike_group.add(spike)
 
-                if tile == '5':
+                if tile == '4':
                     self.rings_amount += 1
                     ring = Ring(col_count * tile_size, row_count * tile_size + 10)
                     ring_group.add(ring)
 
-                if tile == '6':
+                if tile == '5':
                     door = Door(col_count * tile_size, row_count * tile_size + 15)
                     door_group.add(door)
 
@@ -284,23 +280,6 @@ class Door(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
 
-class Camera:
-    # зададим начальный сдвиг камеры
-    def __init__(self):
-        self.dx = 0
-        self.dy = 0
-
-    # сдвинуть объект obj на смещение камеры
-    def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
-
-    # позиционировать камеру на объекте target
-    def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - screen_width // 2)
-        self.dy = -(target.rect.y + target.rect.h // 2 - screen_height // 2)
-
-
 player = Player(50, screen_height - 130)
 
 spike_group = pygame.sprite.Group()
@@ -310,21 +289,19 @@ door_group = pygame.sprite.Group()
 ring_icon = RingIcon(tile_size // 2, tile_size // 2)
 ring_group.add(ring_icon)
 
-if path.exists(f'levels/lvl{level_num}.txt'):
-    f = open(f'levels/lvl{level_num}.txt', 'r')
-    data = f.read()
-    f.close()
-    data = data.split('\n')
-    level = []
-    for row in data:
-        level.append(list(row))
+# if path.exists(f'levels/lvl{level_num}.txt'):
+f = open(f'levels/lvl{level_num}.txt', 'r')
+data = f.read()
+f.close()
+data = data.split('\n')
+level = []
+for row in data:
+    level.append(list(row))
 world = World(level, all_rings)
 
-camera = Camera()
-
 restart_button = Button(screen_width // 2 - 50, screen_height // 2 + 100, restart_img)
-start_button = Button(screen_width // 2 + 100, 350, start_img)
-exit_button = Button(screen_width // 2 - 30 + 150, 550, exit_img)
+start_button = Button(screen_width // 2 + 100, 200, start_img)
+exit_button = Button(screen_width // 2 - 30 + 150, 400, exit_img)
 
 running = True
 while running:
@@ -333,7 +310,7 @@ while running:
 
     if main_menu:
         screen.fill(sky_color)
-        screen.blit(start_screen, (0, 250))
+        screen.blit(start_screen, (0, 100))
         if exit_button.draw():
             running = False
         if start_button.draw():
@@ -345,6 +322,8 @@ while running:
 
         if game_over == 0:
             spike_group.update()
+            ring_group.update()
+            door_group.update()
 
         # check if a ring has been collected
         if pygame.sprite.spritecollide(player, ring_group, True):
@@ -355,6 +334,10 @@ while running:
         if pygame.sprite.spritecollide(player, spike_group, True):
             enemy_sound.play()
             game_over = -1
+
+        if score == world.rings_amount:
+            if pygame.sprite.spritecollide(player, door_group, True):
+                game_over = 1
 
         spike_group.draw(screen)
         ring_group.draw(screen)
@@ -367,26 +350,42 @@ while running:
             screen.fill(sky_color)
             if restart_button.draw():
                 player.reset(100, screen_height - 130)
+
+                f = open(f'levels/lvl{level_num}.txt', 'r')
+                data = f.read()
+                f.close()
+                data = data.split('\n')
+                level = []
+                for row in data:
+                    level.append(list(row))
+                world = World(level, all_rings)
+
                 game_over = 0
                 score = 0
                 row_count = 0
+
                 for row in level:
                     col_count = 0
                     for tile in row:
                         if tile == 2:
                             spike2 = Enemy2(col_count * tile_size, row_count * tile_size + 5)
                             spike_group.add(spike2)
-                        if tile == 5:
+                        if tile == 4:
                             spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
                             spike_group.add(spike)
-                        if tile == 6:
+                        if tile == 5:
                             ring = Ring(col_count * tile_size, row_count * tile_size + 10)
                             ring_group.add(ring)
+                        if tile == 6:
+                            door = Door(col_count * tile_size, row_count * tile_size + 15)
+                            door_group.add(door)
 
                         col_count += 1
                     row_count += 1
 
         if game_over == 1:
+            score = 0
+            screen.fill(sky_color)
             # reset game and go to next level
             level_num += 1
             if level_num <= max_levels:
