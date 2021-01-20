@@ -60,11 +60,13 @@ def reset_level(level_num):
     return world
 
 
+# отрисовываем текст
 def draw_text(text, font, text_color, x, y):
     img = font.render(text, True, text_color)
     screen.blit(img, (x, y))
 
 
+# класс кнопок
 class Button:
     def __init__(self, x, y, image):
         self.image = image
@@ -76,10 +78,10 @@ class Button:
     def draw(self):
         action = False
 
-        # get mouse position
+        # считываем координаты мыши
         pos = pygame.mouse.get_pos()
 
-        # check mouseover and clicked conditions
+        # проверка наведение и нажатие
         if self.rect.collidepoint(pos):
             if pygame.mouse.get_pressed()[0] == 1 and not self.clicked:
                 action = True
@@ -88,22 +90,24 @@ class Button:
         if pygame.mouse.get_pressed()[0] == 0:
             self.clicked = False
 
-        # draw button
+        # отрисовка кнопки
         screen.blit(self.image, self.rect)
 
         return action
 
 
+# класс игрока
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, *groups):
         super().__init__(*groups)
         self.reset(x, y)
         self.count = 1
 
+    # обновление координат и состояний игрока
     def update(self, game_over):
         dx = 0
         dy = 0
-
+        # считывание нажатий клавиш
         if game_over == 0:
             key = pygame.key.get_pressed()
             if key[pygame.K_UP] and self.on_the_ground:
@@ -116,36 +120,28 @@ class Player(pygame.sprite.Sprite):
             if key[pygame.K_RIGHT]:
                 dx += 5
         self.on_the_ground = False
-        # add gravity
+
         self.vel_y += 1
         if self.vel_y > 10:
             self.vel_y = 10
         dy += self.vel_y
 
-        # check for collision
+        # проверка на коллизии
         for tile in world.tile_list:
-            # check for collision in x direction
+            # проверка на коллизии в оси x
             if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                 dx = 0
-            # check for collision in y direction
+            # проверка на коллизии в оси у
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
-                # check if below the ground i.e. jumping
                 if self.vel_y < 0:
                     dy = tile[1].bottom - self.rect.top
                     self.vel_y = 0
-                # check if above the ground i.e. falling
                 elif self.vel_y >= 0:
                     dy = tile[1].top - self.rect.bottom
                     self.vel_y = 0
                     self.on_the_ground = True
 
-            # if pygame.sprite.spritecollide(self, spike_group, False):
-            #     game_over = -1
-
-        # if pygame.sprite.spritecollide(self, door_group, False):
-        #     game_over = 1
-
-        # update player coordinates
+        # обновление координат
         self.rect.x += dx
         self.rect.y += dy
 
@@ -160,6 +156,7 @@ class Player(pygame.sprite.Sprite):
 
         return game_over
 
+    # сброс при проигрыше
     def reset(self, x, y):
         img = pygame.image.load('assets/ball.png')
         dead_img = pygame.image.load('assets/pop.png')
@@ -178,16 +175,15 @@ class Player(pygame.sprite.Sprite):
 all_rings = 0
 
 
+# класс карты
 class World(pygame.sprite.Sprite):
     def __init__(self, data, rings_amount, *groups):
         super().__init__(*groups)
         self.tile_list = []
         self.rings_amount = rings_amount
         wall_img = pygame.image.load('assets/wall.png')
-        wall_half_img = pygame.image.load('assets/wall_half.png')
-        ring_active_img = pygame.image.load('assets/ring_active.png')
-        spike_img = pygame.image.load('assets/spike.png')
 
+        # считывание уровня
         row_count = 0
         for row in data:
             col_count = 0
@@ -220,11 +216,13 @@ class World(pygame.sprite.Sprite):
                 col_count += 1
             row_count += 1
 
+    # отрисовка уровня
     def draw(self):
         for tile in self.tile_list:
             screen.blit(tile[0], tile[1])
 
 
+# спрайт врага (шипы)
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -234,6 +232,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y = y
 
 
+# спрайт врага 2 (движущиеся шипы)
 class Enemy2(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -245,6 +244,7 @@ class Enemy2(pygame.sprite.Sprite):
         self.move_direction = 1
         self.move_counter = 0
 
+    # движение шипов
     def update(self):
         self.rect.y += self.move_direction
         self.move_counter += 1
@@ -253,6 +253,7 @@ class Enemy2(pygame.sprite.Sprite):
             self.move_counter *= -1
 
 
+# спрайт колец
 class Ring(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -262,6 +263,7 @@ class Ring(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
 
+# иконка кольца
 class RingIcon(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -271,6 +273,7 @@ class RingIcon(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
 
+# спрайт двери
 class Door(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -282,14 +285,16 @@ class Door(pygame.sprite.Sprite):
 
 player = Player(50, screen_height - 130)
 
+# группирем спрайты
 spike_group = pygame.sprite.Group()
 ring_group = pygame.sprite.Group()
 door_group = pygame.sprite.Group()
+
 # иконка кольца
 ring_icon = RingIcon(tile_size // 2, tile_size // 2)
 ring_group.add(ring_icon)
 
-# if path.exists(f'levels/lvl{level_num}.txt'):
+# считываем уровней
 f = open(f'levels/lvl{level_num}.txt', 'r')
 data = f.read()
 f.close()
@@ -299,10 +304,12 @@ for row in data:
     level.append(list(row))
 world = World(level, all_rings)
 
+# отрисовка кнопок
 restart_button = Button(screen_width // 2 - 50, screen_height // 2 + 100, restart_img)
 start_button = Button(screen_width // 2 + 100, 200, start_img)
 exit_button = Button(screen_width // 2 - 30 + 150, 400, exit_img)
 
+# игровой цикл
 running = True
 while running:
 
@@ -325,7 +332,7 @@ while running:
             ring_group.update()
             door_group.update()
 
-        # check if a ring has been collected
+        # проверка на сбор колец
         if pygame.sprite.spritecollide(player, ring_group, True):
             ring_sound.play()
             score += 1
@@ -339,6 +346,7 @@ while running:
             if pygame.sprite.spritecollide(player, door_group, True):
                 game_over = 1
 
+        # отрисовка спрайтов
         spike_group.draw(screen)
         ring_group.draw(screen)
         door_group.draw(screen)
@@ -386,17 +394,17 @@ while running:
         if game_over == 1:
             score = 0
             screen.fill(sky_color)
-            # reset game and go to next level
+            # переход на следующий уровень
             level_num += 1
             if level_num <= max_levels:
-                # reset level
+                # сброс уровня
                 level = []
                 world = reset_level(level_num)
                 game_over = 0
             else:
                 if restart_button.draw():
                     level_num = 1
-                    # reset level
+                    # сброс уровня до 1
                     level = []
                     world = reset_level(level_num)
                     game_over = 0
