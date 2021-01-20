@@ -285,7 +285,6 @@ class Door(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
 
-
 player = Player(50, screen_height - 130)
 
 spike_group = pygame.sprite.Group()
