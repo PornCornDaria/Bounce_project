@@ -137,10 +137,11 @@ class Player(pygame.sprite.Sprite):
 
             # if pygame.sprite.spritecollide(self, spike_group, False):
             #     game_over = -1
+            
+        # if pygame.sprite.spritecollide(self, door_group, False):
+        #     game_over = 1
 
-        if pygame.sprite.spritecollide(self, door_group, False):
-            game_over = 1
-
+   
         # update player coordinates
         self.rect.x += dx
         self.rect.y += dy
@@ -284,22 +285,6 @@ class Door(pygame.sprite.Sprite):
         self.rect.center = (x, y)
 
 
-class Camera:
-    # зададим начальный сдвиг камеры
-    def __init__(self):
-        self.dx = 0
-        self.dy = 0
-
-    # сдвинуть объект obj на смещение камеры
-    def apply(self, obj):
-        obj.rect.x += self.dx
-        obj.rect.y += self.dy
-
-    # позиционировать камеру на объекте target
-    def update(self, target):
-        self.dx = -(target.rect.x + target.rect.w // 2 - screen_width // 2)
-        self.dy = -(target.rect.y + target.rect.h // 2 - screen_height // 2)
-
 
 player = Player(50, screen_height - 130)
 
@@ -319,8 +304,6 @@ level = []
 for row in data:
     level.append(list(row))
 world = World(level, all_rings)
-
-camera = Camera()
 
 restart_button = Button(screen_width // 2 - 50, screen_height // 2 + 100, restart_img)
 start_button = Button(screen_width // 2 + 100, 350, start_img)
@@ -345,6 +328,8 @@ while running:
 
         if game_over == 0:
             spike_group.update()
+            ring_group.update()
+            door_group.update()
 
         # check if a ring has been collected
         if pygame.sprite.spritecollide(player, ring_group, True):
@@ -355,13 +340,17 @@ while running:
         if pygame.sprite.spritecollide(player, spike_group, True):
             enemy_sound.play()
             game_over = -1
+            
+        if score == world.rings_amount:
+            if pygame.sprite.spritecollide(player, door_group, True):
+                game_over = 1
 
         spike_group.draw(screen)
         ring_group.draw(screen)
         door_group.draw(screen)
-
+        
         game_over = player.update(game_over)
-
+        
         if game_over == -1:
             spike_group = pygame.sprite.Group()
             screen.fill(sky_color)
@@ -387,17 +376,22 @@ while running:
                         if tile == 2:
                             spike2 = Enemy2(col_count * tile_size, row_count * tile_size + 5)
                             spike_group.add(spike2)
-                        if tile == 5:
+                        if tile == 4:
                             spike = Enemy(col_count * tile_size, row_count * tile_size + 5)
                             spike_group.add(spike)
-                        if tile == 6:
+                        if tile == 5:
                             ring = Ring(col_count * tile_size, row_count * tile_size + 10)
                             ring_group.add(ring)
+                        if tile == 6:
+                            door = Door(col_count * tile_size, row_count * tile_size + 15)
+                            door_group.add(door)
 
                         col_count += 1
                     row_count += 1
 
         if game_over == 1:
+            score = 0
+            screen.fill(sky_color)
             # reset game and go to next level
             level_num += 1
             if level_num <= max_levels:
